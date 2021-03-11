@@ -2,14 +2,14 @@ const request = require('request');
 
 const requestJSONFrom = (url, callback) => {
   request(url, (err, response, body) => {
-    if (err) return callback (err, null);
+    if (err) return callback(err, null);
     try {
       const data = JSON.parse(body);
       return callback(null, data);
     } catch (err) {
       return callback(err, null);
     }
-  })
+  });
 };
 
 const fetchMyIP = callback => {
@@ -39,12 +39,12 @@ const fetchISSFlyOverTimes = ({ latitude, longitude }, callback) => {
 /**
  * Orchestrates multiple API requests in order to determine the next 5 upcoming ISS fly overs for the user's current location.
  * Input:
- *   - A callback with an error or results. 
+ *   - A callback with an error or results.
  * Returns (via Callback):
  *   - An error, if any (nullable)
  *   - The fly-over times as an array (null if error):
  *     [ { risetime: <number>, duration: <number> }, ... ]
- */ 
+ */
 const nextISSTimesForMyLocation = callback => {
   // fetch IP
   fetchMyIP((err, ip) => {
@@ -55,7 +55,7 @@ const nextISSTimesForMyLocation = callback => {
       if (err) return callback(err, null);
       fetchISSFlyOverTimes(coords, (err, times) => {
         // callback
-        if (err) return callback (err, null);
+        if (err) return callback(err, null);
         return callback(null, times);
       });
     });
