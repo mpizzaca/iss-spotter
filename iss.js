@@ -1,66 +1,38 @@
 const request = require('request');
 
+const requestJSONFrom = (url, callback) => {
+  request(url, (err, response, body) => {
+    if (err) return callback (err, null);
+    try {
+      const data = JSON.parse(body);
+      return callback(null, data);
+    } catch (err) {
+      return callback(err, null);
+    }
+  })
+};
+
 const fetchMyIP = callback => {
-  const URL = 'https://api.ipify.org?format=json';
-  request(URL, (err, response, body) => {
-    // check if error
-    if (err) {
-      callback(err, null);
-      return;
-    }
-    // check if non-200 status code
-    if (response.statusCode !== 200) {
-      const msg = `Status code ${response.statusCode} when fetching IP. Response: ${body}`;
-      callback(Error(msg), null);
-      return;
-    }
-    // our request was successful
-    const data = JSON.parse(body);
-    callback(null, data.ip);
+  const url = 'https://api.ipify.org?format=json';
+  requestJSONFrom(url, (err, ip) => {
+    if (err) return callback(err, null);
+    return callback(null, ip.ip);
   });
 };
 
 const fetchCoordsByIP = (ip, callback) => {
-  const URL = 'https://freegeoip.app/json/' + ip;
-  request(URL, (err, response, body) => {
-    // check if error
-    if (err) {
-      callback(err, null);
-      return;
-    }
-    // check if non-200 status code
-    if (response.statusCode !== 200) {
-      const msg = `Status code ${response.statusCode} when fetching geolocation. Response: ${body}`;
-      callback(Error(msg), null);
-      return;
-    }
-    // our request was successful
-    const data = JSON.parse(body);
-    const latLonData = {
-      latitude: data.latitude,
-      longitude: data.longitude,
-    };
-    callback(null, latLonData);
+  const url = 'https://freegeoip.app/json/' + ip;
+  requestJSONFrom(url, (err, { latitude, longitude }) => {
+    if (err) return callback(err, null);
+    return callback(null, { latitude, longitude });
   });
 };
 
-const fetchISSFlyOverTimes = (coords, callback) => {
-  const URL = 'http://api.open-notify.org/iss-pass.json?lat=' + coords.latitude + '&lon=' + coords.longitude;
-  request(URL, (err, response, body) => {
-    // check if error
-    if (err) {
-      callback(err, null);
-      return;
-    }
-    // check if non-200 status code
-    if (response.statusCode !== 200) {
-      const msg = `Status code ${response.statusCode} when fetching ISS flyover times. Response: ${body}`;
-      callback(Error(msg), null);
-      return;
-    }
-    // our request was successful
-    const data = JSON.parse(body);
-    callback(null, data.response);
+const fetchISSFlyOverTimes = ({ latitude, longitude }, callback) => {
+  const url = 'http://api.open-notify.org/iss-pass.json?lat=' + latitude + '&lon=' + longitude;
+  requestJSONFrom(url, (err, passTimes) => {
+    if (err) return callback(err, null);
+    return callback(null, passTimes.response);
   });
 };
 
